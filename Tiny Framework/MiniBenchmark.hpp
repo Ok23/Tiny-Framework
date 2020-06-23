@@ -105,7 +105,7 @@ namespace std
 {
 	ostream & operator << (ostream & os, TinyFramework::Minibench::Result result)
 	{
-		os << "min " << result.min << " max " << result.max << " mean " << result.mean << " meadian " << result.median << std::endl;
+		os << result.name << ": "  << "min " << result.min << " max " << result.max << " mean " << result.mean << " meadian " << result.median << std::endl;
 		return os;
 	}
 }
