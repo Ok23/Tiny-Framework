@@ -4,7 +4,9 @@
 #include <vector>
 #include <chrono>
 #include <ostream>
+#include <iomanip>
 #include "PrettyFormat.hpp"
+
 
 namespace TinyFramework::Minibench
 {
@@ -41,33 +43,22 @@ namespace TinyFramework::Minibench
 		Time max = Time::min();
 		Time mean = Time::zero();
 		Time median = Time::zero();
-		Time stddev { 0.f };
-		Time variance { 0.f };
 		Time elapsed = endTime - startTime;
 
 		for (auto & el : timeResults)
 		{
-			min = std::min(min, el);
-			max = std::max(max, el);
-			mean += el;
+			min = std::min(min, Time(el));
+			max = std::max(max, Time(el));
+			mean += Time(el);
 		}
 		mean /= timeResults.size();
 
 		if (timeResults.size() % 2 == 0)
-			median = (timeResults[timeResults.size() / 2 - 1] + timeResults[timeResults.size() / 2]) / 2;
+			median = Time((timeResults[timeResults.size() / 2 - 1] + timeResults[timeResults.size() / 2]) / 2);
 		else
-			median = timeResults[timeResults.size() / 2];
+			median = Time(timeResults[timeResults.size() / 2]);
 
-		for (auto el : timeResults)
-		{
-			variance += Time(el.count() - mean.count()) * (el.count() - mean.count());
-		}
-
-		variance /= Time::rep((timeResults.size() - 1) or 1);
-
-		stddev = Time(std::sqrt(variance.count()));
-
-		return Result { min, max, mean, median, variance, stddev, elapsed, IterCount };
+		return Result { name, min, max, mean, median, elapsed, timeResults };
 	}
 
 
@@ -76,21 +67,45 @@ namespace TinyFramework::Minibench
 	private:
 		template<auto, size_t, size_t>
 		friend Result run(std::string_view);
-		Result(Time min, Time max, Time mean, Time median, Time variance, Time stddev, Time elapsed, size_t iterCount)
-			: min(min), max(max), mean(mean), median(median), variance(variance), stddev(stddev), elapsed(elapsed), iterCount(iterCount) {}
+		Result(std::string_view name, Time min, Time max, Time mean, Time median, Time elapsed, std::vector<Time> results)
+			: name(name), min(min), max(max), mean(mean), median(median), elapsed(elapsed), results(results) {}
 	public:
 		const std::string_view name;
+		const std::vector<Time> results;
 		const Time min, max, mean, median, elapsed;
-		const Time variance, stddev;
-		const size_t iterCount;
 	};
+
+
+	template<typename ... Args>
+	std::ostream & compare(std::ostream & os, Result origin, Args &&... compareTo)
+	{
+		using std::setw;
+		std::ostringstream ios {};
+		const size_t maxNameShift = std::max(std::max({ origin.name.size(), compareTo.name.size()... }) + 3, 11Ui64);
+		const size_t indent = 11;
+		auto consumeArg = [&ios, &origin, indent, maxNameShift](auto arg)
+		{
+			ios << "   ";
+			ios << setw(maxNameShift) << arg.name << setw(indent) << arg.min / origin.min << setw(indent) << arg.max / origin.max << setw(indent) << arg.mean / origin.mean << setw(indent) << arg.median / origin.median << std::endl;
+		};
+		ios << std::left;
+		ios << "MiniBench\n";
+		ios << "   ";
+		ios << setw(maxNameShift) << "name" << setw(indent) << "min" << setw(indent) << "max" << setw(indent) << "mean" << setw(indent) << "median" << std::endl;
+		ios << "   ";
+		ios << setw(maxNameShift) << origin.name << setw(indent) << origin.min << setw(indent) << origin.max << setw(indent) << origin.mean << setw(indent) << origin.median << "[origin]" << std::endl;
+		ios << std::setprecision(3);
+		(consumeArg(compareTo), ...);
+		os << ios.str();
+		return os << std::endl;
+	}
 }
 
 namespace std
 {
 	ostream & operator << (ostream & os, TinyFramework::Minibench::Result result)
 	{
-		os << "min " << result.min << " max " << result.max << " mean " << result.mean << " meadian " << result.median << " variance " << result.variance << " stddev " << result.stddev << std::endl;
+		os << "min " << result.min << " max " << result.max << " mean " << result.mean << " meadian " << result.median << std::endl;
 		return os;
 	}
 }
