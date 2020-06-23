@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tiny Framework", "Tiny Framework\Tiny Framework.vcxproj", "{EC69B05C-D4F5-436E-93A2-12C4ABFF1BE6}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Testing", "Testing\Testing.vcxproj", "{BC9798D1-4749-4FD3-8A32-6AB159844544}"
+	ProjectSection(ProjectDependencies) = postProject
+		{EC69B05C-D4F5-436E-93A2-12C4ABFF1BE6} = {EC69B05C-D4F5-436E-93A2-12C4ABFF1BE6}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
