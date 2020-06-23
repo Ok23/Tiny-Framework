@@ -9,8 +9,6 @@ namespace std
 	template<typename TimeRep, typename TimeRatio>
 	ostream & operator << (ostream & os, chrono::duration<TimeRep, TimeRatio> time)
 	{
-		//template<typename To, typename Rep, typename Period>
-
 		using chrono::duration_cast;
 
 		std::ostringstream localStr;
