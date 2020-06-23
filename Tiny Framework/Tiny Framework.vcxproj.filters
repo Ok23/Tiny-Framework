@@ -30,6 +30,9 @@
     <ClInclude Include="EaseFunctions.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="MiniBenchmark.hpp">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EaseFunctions.cpp">

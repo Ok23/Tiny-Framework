@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="EaseFunctions.hpp" />
     <ClInclude Include="Generic.hpp" />
+    <ClInclude Include="MiniBenchmark.hpp" />
     <ClInclude Include="PrettyFormat.hpp" />
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="TimeTransform.hpp" />

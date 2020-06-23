@@ -2,6 +2,7 @@
 #include <sstream>
 #include <ostream>
 #include <chrono>
+#include <type_traits>
 
 namespace std
 {
@@ -10,66 +11,80 @@ namespace std
 	{
 		//template<typename To, typename Rep, typename Period>
 
-		using std::chrono::duration_cast;
+		using chrono::duration_cast;
 
 		std::ostringstream localStr;
-		const char * suffix = nullptr;
-		auto formatTime = time.count();
-		const auto absTime = std::chrono::abs(time);
+		const char * suffix = "ns";
+		auto absTime = time;
+		if constexpr (is_signed_v<TimeRep>)
+			absTime = absTime.count() < TimeRep(0) ? -absTime : absTime;
+		TimeRep formatTime = time.count();
 
-		auto nanoseconds = duration_cast<chrono::nanoseconds>(absTime);
-		auto microsecs = duration_cast<chrono::microseconds>(absTime);
-		auto millisecs = duration_cast<chrono::milliseconds>(absTime);
-		auto seconds = duration_cast<chrono::seconds>(absTime);
-		auto minutes = duration_cast<chrono::minutes>(absTime);
-		auto hours = duration_cast<chrono::hours>(absTime);
+		using ns = chrono::duration<TimeRep, std::nano>;
+		using us = chrono::duration<TimeRep, std::micro>;
+		using ms = chrono::duration<TimeRep, std::milli>;
+		using sec = chrono::duration<TimeRep>;
+		using min = chrono::duration<TimeRep, std::ratio<60>>;
+		using hour = chrono::duration<TimeRep, std::ratio<3600>>;
+		using day = chrono::duration<TimeRep, std::ratio<86400>>;
+
+		auto nanoseconds = duration_cast<ns>(absTime);
+		auto microsecs = duration_cast<us>(absTime);
+		auto millisecs = duration_cast<ms>(absTime);
+		auto seconds = duration_cast<sec>(absTime);
+		auto minutes = duration_cast<min>(absTime);
+		auto hours = duration_cast<hour>(absTime);
+		auto days = duration_cast<day>(absTime);
 
 		localStr.flags(os.flags());
 		localStr.imbue(os.getloc());
 		localStr.precision(os.precision());
 
-		if (nanoseconds.count() == 0.f)
+		if (time.count() == TimeRep(0))
 		{
 			suffix = "ns";
-			nanoseconds = time;
-			formatTime = nanoseconds.count();
-		}
-		else if (nanoseconds.count() >= 1.0 and microsecs.count() < 1.0)
-		{
-			suffix = "ns";
-			nanoseconds = time;
-			formatTime = nanoseconds.count();
-		}
-		else if (microsecs.count() >= 1.0 and millisecs.count() < 1.0)
-		{
-			suffix = "us";
-			microsecs = time;
-			formatTime = microsecs.count();
-		}
-		else if (millisecs.count() >= 1.0 and seconds.count() < 1.0)
-		{
-			suffix = "ms";
-			millisecs = time;
-			formatTime = millisecs.count();
-		}
-		else if (seconds.count() >= 1.0 and minutes.count() < 1.0)
-		{
-			suffix = "sec";
-			seconds = time;
-			formatTime = seconds.count();
-
-		}
-		else if (minutes.count() >= 1.0 and hours.count() < 1.0)
-		{
-			suffix = "min";
-			minutes = time;
-			formatTime = minutes.count();
+			formatTime = TimeRep(0);
 		}
 		else
 		{
-			suffix = "hour";
-			hours = time;
-			formatTime = hours.count();
+			if (microsecs.count() >= TimeRep(1))
+			{
+				suffix = "us";
+				formatTime = microsecs.count();
+			}
+			if (millisecs.count() >= TimeRep(1))
+			{
+				suffix = "ms";
+				formatTime = millisecs.count();
+			}
+			if (seconds.count() >= TimeRep(1))
+			{
+				suffix = "sec";
+				formatTime = seconds.count();
+			}
+			if (minutes.count() >= TimeRep(1))
+			{
+				suffix = "min";
+				formatTime = minutes.count();
+			}
+			if (hours.count() >= TimeRep(1))
+			{
+				suffix = "hour";
+				formatTime = hours.count();
+			}
+			if (days.count() >= TimeRep(1))
+			{
+				suffix = "day";
+				formatTime = days.count();
+			}
+		}
+
+		
+
+		if constexpr (is_signed_v<TimeRep>)
+		{
+			if (time.count() < TimeRep(0))
+				formatTime = -formatTime;
 		}
 		localStr << formatTime;
 		localStr << suffix;
