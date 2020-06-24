@@ -96,10 +96,15 @@ namespace TinyFramework::Minibench
 		for (auto & el : compareTo)
 			maxNameShift = std::max(el.name.size(), maxNameShift);
 
-		std::vector<Result> comp { compareTo };
+
+		std::vector<Result> results {};
+		results.reserve(std::size(compareTo) + 1);
+		results.emplace_back(origin);
+		for (auto & r : compareTo)
+			results.emplace_back(r);
 		if (Tag != SortTag::None and std::size(compareTo) > 1)
 		{
-			std::sort(comp.begin(), comp.end(), [](const Result & first, const Result & second) -> bool
+			std::sort(results.begin(), results.end(), [](const Result & first, const Result & second) -> bool
 			{
 				if (Tag == SortTag::Min)
 					return first.min < second.min;
@@ -117,13 +122,21 @@ namespace TinyFramework::Minibench
 		ios << "MiniBench\n";
 		ios << "   ";
 		ios << setw(maxNameShift) << "name" << setw(indent) << "min" << setw(indent) << "max" << setw(indent) << "mean" << setw(indent) << "median" << std::endl;
-		ios << "   ";
-		ios << setw(maxNameShift) << origin.name << setw(indent) << origin.min << setw(indent) << origin.max << setw(indent) << origin.mean << setw(indent) << origin.median << "[origin]" << std::endl;
 		ios << std::setprecision(3);
-		for (auto & arg : comp)
+		for (auto & arg : results)
 		{
 			ios << "   ";
-			ios << setw(maxNameShift) << arg.name << setw(indent) << arg.min / origin.min << setw(indent) << arg.max / origin.max << setw(indent) << arg.mean / origin.mean << setw(indent) << arg.median / origin.median << std::endl;
+			if (arg.name == origin.name)
+			{
+				ios << setw(maxNameShift) << arg.name << setw(indent) << arg.min << setw(indent) << arg.max  << setw(indent) << arg.mean  << setw(indent) << arg.median << setw(indent) << "[origin]";
+			}
+			else
+			{
+				ios << setw(maxNameShift) << arg.name << setw(indent) << arg.min / origin.min << setw(indent) << arg.max / origin.max << setw(indent) << arg.mean / origin.mean << setw(indent) << arg.median / origin.median;
+
+			}
+			ios << std::endl;
+
 		}
 		os << ios.str();
 		return os << std::endl;
